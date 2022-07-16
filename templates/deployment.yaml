@@ -1,61 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "mlflow.fullname" . }}
-  labels:
-    {{- include "mlflow.labels" . | nindent 4 }}
+  name: mlflow
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
-      {{- include "mlflow.selectorLabels" . | nindent 6 }}
+      app: mlflow
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
-        {{- include "mlflow.selectorLabels" . | nindent 8 }}
+        app: mlflow
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "mlflow.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      - name: mlflow
+        image: jhginn/mlflow:latest
+        command: ["mlflow"]
+        args: [
+          "server", 
+          "--host", "0.0.0.0", 
+          "--port", "5000", 
+          "--default-artifact-root", "./mlruns"
+        ]
+        #"--backend-store-uri", 
+        #"postgresql+psycopg2://postgres:password@postgres.postgres.svc.cluster.local/postgres",
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        # resources:
+        #   limits:
+        #     memory: "500Mi"
+        #     cpu: "500m"
+        ports:
+        - containerPort: 5000
+      restartPolicy: Always
