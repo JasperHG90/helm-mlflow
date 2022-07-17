@@ -18,16 +18,15 @@ spec:
         args: [
           "server", 
           "--host", "0.0.0.0", 
-          "--port", "5000", 
-          "--default-artifact-root", "./mlruns"
+          "--port", "5001", 
+          "--default-artifact-root", "./mlruns",
+          "--backend-store-uri", {{ .Values.backendDatabase }}
         ]
-        #"--backend-store-uri", 
-        #"postgresql+psycopg2://postgres:password@postgres.postgres.svc.cluster.local/postgres",
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         # resources:
         #   limits:
         #     memory: "500Mi"
         #     cpu: "500m"
         ports:
-        - containerPort: 5000
+        - containerPort: 5001
       restartPolicy: Always
